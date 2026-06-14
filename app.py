@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 
 load_dotenv()
@@ -66,10 +66,7 @@ st.markdown("""
     }
     .metric-number { font-size: 22px; font-weight: bold; color: #2563eb; }
     .metric-label { font-size: 11px; color: #6b7280; margin-top: 2px; }
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-    }
+    .empty-state { text-align: center; padding: 60px 20px; }
     .stChatMessage { border-radius: 12px; margin-bottom: 8px; }
 </style>
 """, unsafe_allow_html=True)
@@ -106,25 +103,9 @@ def process_pdf(file_path):
     )
     chunks = splitter.split_documents(documents)
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    
-    vectorstore = Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
-        persist_directory="chroma_db_" + str(int(time.time()))
-    )
+    vectorstore = FAISS.from_documents(chunks, embeddings)
     return vectorstore, documents
-    # clear old db
-    # clear old db
-    import shutil
-    import gc
-    if "vectorstore" in st.session_state and st.session_state.vectorstore is not None:
-        st.session_state.vectorstore = None
-        gc.collect()
-    if os.path.exists("chroma_db"):
-        try:
-            shutil.rmtree("chroma_db")
-        except:
-            pass
+
 # --- Generate Summary ---
 def generate_summary(documents):
     full_text = " ".join([doc.page_content for doc in documents[:8]])
@@ -155,7 +136,6 @@ def answer_question(question, vectorstore):
     docs = retriever.invoke(question)
     context = "\n\n".join([doc.page_content for doc in docs])
     sources = [doc.page_content[:250] for doc in docs[:3]]
-
     response = llm.invoke(f"""
 You are a helpful and thorough document assistant.
 Answer the question below using the context provided.
@@ -220,7 +200,7 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**⚙️ Powered By**")
-    st.markdown("🧠 Groq LLaMA3 · 🗃️ ChromaDB · 🤗 HuggingFace · 🦜 LangChain")
+    st.markdown("🧠 Groq LLaMA3 · 🗃️ FAISS · 🤗 HuggingFace · 🦜 LangChain")
 
     st.divider()
     if st.button("🗑️ Clear Chat"):
@@ -245,7 +225,6 @@ if st.session_state.pdf_ready:
     st.markdown(f"**📂 Loaded:** `{st.session_state.pdf_name}` — {len(st.session_state.documents)} pages")
     st.divider()
 
-    # Summary
     st.markdown("### 📝 Document Summary")
     if st.session_state.summary is None:
         if st.button("✨ Generate Summary", type="primary"):
@@ -253,14 +232,13 @@ if st.session_state.pdf_ready:
                 summary = generate_summary(st.session_state.documents)
                 st.session_state.summary = summary
             st.rerun()
-    
+
     if st.session_state.summary:
         st.markdown(f"""<div class="summary-box">{st.session_state.summary}</div>""",
                     unsafe_allow_html=True)
 
     st.divider()
 
-    # Q&A
     st.markdown("### 💬 Ask Anything About This PDF")
 
     for chat in st.session_state.chat_history:
@@ -275,7 +253,7 @@ if st.session_state.pdf_ready:
             if chat["role"] == "assistant":
                 st.caption(f"⏱️ {chat.get('response_time', '')}s")
 
-    question = st.chat_input("Ask anything about your PDF — key points, details, comparisons...")
+    question = st.chat_input("Ask anything about your PDF...")
 
     if question:
         with st.chat_message("user"):
