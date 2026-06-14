@@ -10,7 +10,6 @@
 > Upload any PDF and instantly get a comprehensive summary plus ask unlimited questions about its content — powered by free AI tools.
 
 🔗 **Live Demo:** [Click here to try it](https://smartpdf-assistant-ievdhvfdkrhry572jjkqej.streamlit.app/)
-
 ---
 
 ## 📌 Problem Statement
@@ -76,7 +75,7 @@ Answer + Source citations shown to user
 |---|---|
 | 🦜 LangChain | Document loading, text splitting, retrieval |
 | 🧠 Groq + LLaMA3 | Free, fast LLM for summarisation and Q&A |
-| 🗃️ ChromaDB | Local vector database for storing embeddings |
+| 🗃️ FAISS | Lightweight vector database for storing embeddings |
 | 🤗 HuggingFace | Sentence embeddings (all-MiniLM-L6-v2) |
 | 🖥️ Streamlit | Beautiful web UI with chat interface |
 | 🐍 Python 3.10 | Core language |
