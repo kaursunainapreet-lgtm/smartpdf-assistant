@@ -45,11 +45,11 @@ PDF loaded and split into chunks (800 tokens each)
 
 ↓
 
-Chunks converted to embeddings (HuggingFace all-MiniLM-L6-v2)
+Chunks converted to embeddings 
 
 ↓
 
-Embeddings stored in ChromaDB vector database
+Embeddings stored in FAISS vector database
 
 ↓
 
@@ -57,7 +57,7 @@ User asks question
 
 ↓
 
-Top 6 relevant chunks retrieved from ChromaDB
+Top 6 relevant chunks retrieved from FAISS
 
 ↓
 
